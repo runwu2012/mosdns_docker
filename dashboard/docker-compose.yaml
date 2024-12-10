@@ -12,11 +12,11 @@ networks:
 services:
   mosdns:
     container_name: mosdns
-    build:
-      context: ./mosdns/docker
-    image: mosdns_unofficial:latest
+    image: mosdns_unofficial:v5
     volumes:
-      - ./mosdns/config:/etc/mosdns
+      - ../mosdns_v5/config.yaml:/etc/mosdns/config.yaml
+      - ../mosdns_v5/dat_exec.yaml:/etc/mosdns/dat_exec.yaml
+      - ../mosdns_v5/dns.yaml:/etc/mosdns/dns.yaml
       - logs:/var/log
     restart: always
     network_mode: host
@@ -41,7 +41,7 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus 
+      - prometheus_data:/prometheus
     ports:
       - 9090:9090
     restart: always
@@ -84,7 +84,7 @@ services:
         datasources:
         - name: Loki
           type: loki
-          access: proxy 
+          access: proxy
           orgId: 1
           url: http://loki:3100
           basicAuth: false

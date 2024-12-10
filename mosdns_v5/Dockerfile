@@ -14,16 +14,9 @@ RUN set -xe \
   && v2dat unpack geosite -o dat -f "category-ads-all" geosite.dat \
   && v2dat unpack geosite -o dat -f "geolocation-!cn" geosite.dat
 
-
+#use multi-state builds
 FROM irinesistiana/mosdns:latest
 LABEL maintainer="None"
-
-COPY ./config.yaml /etc/mosdns/config.yaml
-COPY ./dat_exec.yaml /etc/mosdns/dat_exec.yaml
-COPY ./dns.yaml /etc/mosdns/dns.yaml
-COPY ./entrypoint.sh /entrypoint.sh
-COPY --from=unpack /dat /dat
-RUN chmod a+x /entrypoint.sh
 
 # RUN set -xe \
 #   && apk add --no-cache curl \
@@ -34,6 +27,22 @@ RUN chmod a+x /entrypoint.sh
 # # &&  echo '0 2 * * *  wget -O /geoip.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat'>>/var/spool/cron/crontabs/root  \
 # # &&  echo '0 2 * * *  wget -O /geosite.dat https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat'>>/var/spool/cron/crontabs/root  \
 # # && apk del curl
+RUN set -xe \
+  && apk add --no-cache logrotate \
+  && echo "0 1 * * * /bin/sh -c /usr/sbin/logrotate -l=syslog -d /etc/logrotate.d" >> /var/spool/cron/crontabs/root
+
+#mosdns logrotate
+COPY ./mosdns /etc/logrotate.d/mosdns
+
+#mosdns config
+COPY config.yaml dat_exec.yaml dns.yaml /etc/mosdns/
+
+# all dat files
+COPY --from=unpack /dat /dat
+
+#run command
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod a+x /entrypoint.sh
 
 VOLUME /etc/mosdns
 EXPOSE 53/udp 53/tcp

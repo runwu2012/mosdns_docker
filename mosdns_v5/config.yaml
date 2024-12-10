@@ -97,10 +97,10 @@ plugins:
       - exec: $local_seq
 
   # 其他所有情况
-  - tag: query_other 
+  - tag: query_other
     type: sequence
     args:
-      # - exec: $no_ecs 
+      # - exec: $no_ecs
       - exec: $other_seq
 
   - tag: pre_handle
@@ -115,7 +115,7 @@ plugins:
       - exec: $ttl_5m # ttl 5min
       - exec: accept # 接受响应,终止流程
 
-  # pre_sequence 结果处理 
+  # pre_sequence 结果处理
   - tag: has_resp_pre
     type: sequence
     args:

@@ -148,7 +148,7 @@ plugins:
     args:
       concurrent: 1
       upstreams:
-        - addr: "udp://192.168.1.1:53"
+        - addr: "udp://192.168.1.1:53" # 更新为本地 dns 地址, 一般是 网关地址
 
   # server 失败
   - tag: reject_2
