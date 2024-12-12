@@ -1,11 +1,11 @@
 FROM golang:1.19.2-alpine as unpack
+ARG GOPROXY=https://goproxy.cn,direct
 WORKDIR /
-
 RUN set -xe \
   && apk add --no-cache curl \
   && go install github.com/urlesistiana/v2dat@latest \
-  && curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat \
-  && curl -LJO https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
+  && curl -LJO https://ghp.ci/https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat \
+  && curl -LJO https://ghp.ci/https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat \
   && mkdir dat \
   && v2dat unpack geoip -o dat -f "private" geoip.dat \
   && v2dat unpack geoip -o dat -f "cn" geoip.dat \

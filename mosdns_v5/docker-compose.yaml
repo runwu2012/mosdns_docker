@@ -2,14 +2,16 @@ version: '3'
 services:
   mosdns:
     container_name: mosdns
-    build: ./Dockerfile
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: mosdns_unofficial:v5
-  restart: unless-stopped
-  network_mode: host
-  volumes:
-    - ./config.yaml:/etc/mosdns/config.yaml
-    - ./dat_exec.yaml:/etc/mosdns/dat_exec.yaml
-    - ./dns.yaml:/etc/mosdns/dns.yaml
-  #ports:
-  #  - 53:53/udp
-  #  - 53:53/tcp
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./config.yaml:/etc/mosdns/config.yaml
+      - ./dat_exec.yaml:/etc/mosdns/dat_exec.yaml
+      - ./dns.yaml:/etc/mosdns/dns.yaml
+    #ports:
+    #  - 53:53/udp
+    #  - 53:53/tcp
