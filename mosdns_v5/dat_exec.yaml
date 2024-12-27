@@ -16,11 +16,13 @@ plugins:
     args:
       files:
         - "/dat/geosite_cn.txt"
+        - "/etc/mosdns/rule/whitelist.txt"
   - tag: geosite_gfw # gfw 域名
     type: domain_set
     args:
       files:
         - "/dat/geosite_gfw.txt"
+        - "/etc/mosdns/rule/greylist.txt"
   - tag: geosite_location-!cn # 非 cn 域名
     type: domain_set
     args:
@@ -74,7 +76,7 @@ plugins:
     type: "ecs_handler"
     args:
       forward: false # 是否转发来自下游的 ecs
-      preset: 58.220.240.74 # 发送预设 ecs
+      preset: 61.147.37.1 # 发送预设 ecs江苏dns地址
       send: false # 是否发送 ecs
       mask4: 24 # ipv4 掩码。默认 24
       mask6: 48 # ipv6 掩码。默认 48

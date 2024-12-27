@@ -2,6 +2,9 @@ log:
   level: debug
   file: "/var/log/mosdns.log"
 
+api:
+  http: "0.0.0.0:8338" # api 监听地址
+
 include:
   - "/etc/mosdns/dat_exec.yaml"
   - "/etc/mosdns/dns.yaml"
@@ -22,16 +25,16 @@ plugins:
   - tag: reject_ad
     type: sequence
     args:
-      - exec: query_summary reject_ad
+      - exec: query_summary reject_adlist
       - exec: $reject_3
 
   ################ 序列 #################
   - tag: dns_nocn
     type: "fallback"
     args:
-      primary: cloudflare # 主dns
-      secondary: google # 备用dns
-      threshold: 500 # 无响应切换 毫秒
+      primary: quad9 # 主dns
+      secondary: nextdns # 备用dns
+      threshold: 700 # 无响应切换 毫秒
       always_standby: true # 副可执行插件始终待命
 
   # dns-cn 序列
@@ -61,6 +64,12 @@ plugins:
       - exec: query_summary local
       - exec: $local
 
+  - tag: fallback_seq # 其他特殊情况统一使用 dns_cn 处理
+    type: sequence
+    args:
+      - exec: query_summary fallback
+      - exec: $dns_cn
+
   - tag: other_seq # 其他特殊情况统一使用 dns_cn 处理
     type: sequence
     args:
@@ -80,11 +89,24 @@ plugins:
   - tag: query_nocn
     type: sequence
     args:
-      # - exec: $ecs-cn
+      - exec: $no_ecs
       - exec: prefer_ipv4
       - exec: $dns_nocn_seq
       - matches: "resp_ip $geoip_cn" # 响应为 cn ip
         exec: drop_resp # 丢弃
+
+  - tag: query_gfw
+    type: sequence
+    args:
+      - exec: $forward_remote
+
+  # query fallback
+  - tag: query_fallback
+    type: sequence
+    args:
+      # - exec: $ecs-cn
+      - exec: prefer_ipv4
+      - exec: $fallback_seq
 
   # query lan
   - tag: query_lan
@@ -156,17 +178,22 @@ plugins:
       - matches: qname $geosite_cn # cn 域名
         exec: $query_cn
       - exec: jump has_resp_main
+      # 检查是否符合GFW域名规则
+      - matches: qname $geosite_gfw
+        exec: $query_gfw
+      - exec: jump has_resp_main
       - matches: qname $geosite_location-!cn # 非 cn 域名
         exec: $query_nocn
       - exec: jump has_resp_main
       # 其他
       - exec: $no_ecs
-      - exec: $query_nocn
+      - exec: $query_fallback
       - exec: jump has_resp_main
 
   - tag: sequence
     type: sequence
     args:
+      - exec: metrics_collector metrics
       - exec: $pre_sequence # 预处理
       - exec: $main_sequence # 主执行序列
 
@@ -174,8 +201,8 @@ plugins:
   - type: udp_server
     args:
       entry: sequence
-      listen: :53
+      listen: :5335
   - type: tcp_server
     args:
       entry: sequence
-      listen: :53
+      listen: :5335
